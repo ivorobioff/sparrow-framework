@@ -1,0 +1,23 @@
+{
+    "name": "immediate-solutions/framework",
+    "license": "MIT",
+    "type": "framework",
+    "authors": [
+        {
+            "name": "ivorobioff",
+            "email": "igor.vorobioff@gmail.com"
+        }
+    ],
+    "minimum-stability": "dev",
+    "require": {
+        "zendframework/zend-diactoros": "^1.3",
+        "nikic/fast-route": "^1.0",
+        "illuminate/container": "^5.3",
+        "symfony/console": "^3.1"
+    },
+    "autoload": {
+        "psr-4": {
+            "ImmediateSolutions\\Support\\Framework\\": "src/"
+        }
+    }
+}
