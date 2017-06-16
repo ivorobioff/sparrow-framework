@@ -4,10 +4,10 @@ namespace ImmediateSolutions\Support\Framework;
 /**
  * @author Igor Vorobiov<igor.vorobioff@gmail.com>
  */
-interface EnvironmentInterface
+interface ContextInterface
 {
     /**
      * @return bool
      */
-    public function isDevelopment();
+    public function isDebug();
 }
