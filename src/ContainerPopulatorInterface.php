@@ -8,7 +8,7 @@ interface ContainerPopulatorInterface
 {
     /**
      * @param string $target
-     * @param callable|string $source
+     * @param callable|string|object $source
      * @return $this
      */
     public function service($target, $source);
@@ -22,10 +22,10 @@ interface ContainerPopulatorInterface
 
     /**
      * @param string $target
-     * @param object $instance
+     * @param string $source
      * @return $this
      */
-    public function alias($target, $instance);
+    public function alias($target, $source);
 
     /**
      * @param string $target

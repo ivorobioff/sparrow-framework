@@ -36,7 +36,7 @@ class Console implements CommandStorageInterface
     public function run()
     {
         $this->container = new Container();
-        $this->container->alias(ContainerInterface::class, $this->container);
+        $this->container->service(ContainerInterface::class, $this->container);
 
         $this->containerRegister->register($this->container);
 

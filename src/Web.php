@@ -31,9 +31,9 @@ class Web
     {
         $this->container = new Container();
 
-        $this->container->alias(ContainerInterface::class, $this->container);
+        $this->container->service(ContainerInterface::class, $this->container);
 
-        $this->container->alias(ServerRequestInterface::class, new Request(ServerRequestFactory::fromGlobals()));
+        $this->container->service(ServerRequestInterface::class, new Request(ServerRequestFactory::fromGlobals()));
 
         $this->container->instance(DispatcherInterface::class, Dispatcher::class);
 

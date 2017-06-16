@@ -21,12 +21,17 @@ class Container implements ContainerPopulatorInterface, ContainerInterface
 
     /**
      * @param string $target
-     * @param callable|string $source
+     * @param callable|string|object $source
      * @return $this
      */
     public function service($target, $source)
     {
-        $this->laravel->singleton($target, $this->protectSource($source));
+        if (is_object($source) && !is_callable($source)){
+            $this->laravel->instance($target, $source);
+        } else {
+            $this->laravel->singleton($target, $this->protectSource($source));
+        }
+
         return $this;
     }
 
@@ -43,12 +48,12 @@ class Container implements ContainerPopulatorInterface, ContainerInterface
 
     /**
      * @param string $target
-     * @param object $instance
+     * @param string $source
      * @return $this
      */
-    public function alias($target, $instance)
+    public function alias($target, $source)
     {
-        $this->laravel->instance($target, $instance);
+        $this->laravel->alias($source, $target);
         return $this;
     }
 
@@ -67,7 +72,7 @@ class Container implements ContainerPopulatorInterface, ContainerInterface
     }
 
     /**
-     * @param string|callable $source
+     * @param string|callable|object $source
      * @return Closure
      */
     private function protectSource($source)
