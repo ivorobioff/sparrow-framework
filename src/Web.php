@@ -16,11 +16,6 @@ class Web
     private $containerRegister;
 
     /**
-     * @var ContainerInterface
-     */
-    private $container;
-
-    /**
      * @param ContainerRegisterInterface $register
      */
     public function __construct(ContainerRegisterInterface $register)
@@ -41,30 +36,34 @@ class Web
      */
     public function handle(ServerRequestInterface $request)
     {
-        $this->container = new Container();
+        $container = new Container();
 
-        $this->container->service(ContainerInterface::class, $this->container);
+        $container->service('container', $container);
 
-        $this->container->service(ServerRequestInterface::class, $request);
+        $container->alias(ContainerInterface::class, 'container');
 
-        $this->container->instance(DispatcherInterface::class, Dispatcher::class);
+        $container->service('request', $request);
 
-        $this->containerRegister->register($this->container);
+        $container->alias(ServerRequestInterface::class, 'request');
 
-        $pipeline = new MiddlewarePipeline($this->container);
+        $container->instance(DispatcherInterface::class, Dispatcher::class);
 
-        if ($this->container->has(MiddlewareRegisterInterface::class)){
+        $this->containerRegister->register($container);
+
+        $pipeline = new MiddlewarePipeline($container);
+
+        if ($container->has(MiddlewareRegisterInterface::class)){
 
             /**
              * @var MiddlewareRegisterInterface $middlewareRegister
              */
-            $middlewareRegister = $this->container->get(MiddlewareRegisterInterface::class);
+            $middlewareRegister = $container->get(MiddlewareRegisterInterface::class);
 
             $middlewareRegister->register($pipeline);
         }
 
         $pipeline->add(DispatcherMiddleware::class);
 
-        return $pipeline->handle($this->container->get(ServerRequestInterface::class));
+        return $pipeline->handle($container->get(ServerRequestInterface::class));
     }
 }
