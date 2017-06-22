@@ -1,5 +1,6 @@
 <?php
 namespace ImmediateSolutions\Support\Framework;
+use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Zend\Diactoros\ServerRequestFactory;
 use Zend\Diactoros\Response\SapiEmitter;
@@ -29,11 +30,22 @@ class Web
 
     public function run()
     {
+        $response = $this->handle(new Request(ServerRequestFactory::fromGlobals()));
+        $emitter = new SapiEmitter();
+        $emitter->emit($response);
+    }
+
+    /**
+     * @param ServerRequestInterface $request
+     * @return ResponseInterface
+     */
+    public function handle(ServerRequestInterface $request)
+    {
         $this->container = new Container();
 
         $this->container->service(ContainerInterface::class, $this->container);
 
-        $this->container->service(ServerRequestInterface::class, new Request(ServerRequestFactory::fromGlobals()));
+        $this->container->service(ServerRequestInterface::class, $request);
 
         $this->container->instance(DispatcherInterface::class, Dispatcher::class);
 
@@ -53,9 +65,6 @@ class Web
 
         $pipeline->add(DispatcherMiddleware::class);
 
-        $response = $pipeline->handle($this->container->get(ServerRequestInterface::class));
-
-        $emitter = new SapiEmitter();
-        $emitter->emit($response);
+        return $pipeline->handle($this->container->get(ServerRequestInterface::class));
     }
 }
