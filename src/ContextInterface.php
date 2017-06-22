@@ -10,4 +10,9 @@ interface ContextInterface
      * @return bool
      */
     public function isDebug();
+
+    /**
+     * @return string
+     */
+    public function getRootPath();
 }
