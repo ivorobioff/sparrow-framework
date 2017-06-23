@@ -57,8 +57,10 @@ class Console implements CommandStorageInterface
 
             $command = $this->resolveCommand($command);
 
-            foreach ($command->getHelperSet() as $name => $helper){
-                $cli->getHelperSet()->set($helper, $name);
+            if ($helperSet = $command->getHelperSet()){
+                foreach ($helperSet as $name => $helper){
+                    $cli->getHelperSet()->set($helper, $name);
+                }
             }
 
             $cli->add($command);
