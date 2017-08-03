@@ -38,13 +38,14 @@ class Web
     {
         $container = new Container();
 
-        $container->service('container', $container);
+        $origins = new Origins();
 
-        $container->alias(ContainerInterface::class, 'container');
+        $origins->setContainer($container);
+        $origins->setRequest($request);
 
-        $container->service('request', $request);
-
-        $container->alias(ServerRequestInterface::class, 'request');
+        $container->service(Origins::class, $origins);
+        $container->service(ContainerInterface::class, $container);
+        $container->service(ServerRequestInterface::class, $request);
 
         $container->instance(DispatcherInterface::class, Dispatcher::class);
 
