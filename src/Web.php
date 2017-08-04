@@ -2,6 +2,7 @@
 namespace ImmediateSolutions\Support\Framework;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
+use Zend\Diactoros\Response\EmitterInterface;
 use Zend\Diactoros\ServerRequestFactory;
 use Zend\Diactoros\Response\SapiEmitter;
 
@@ -16,6 +17,11 @@ class Web
     private $containerRegister;
 
     /**
+     * @var EmitterInterface
+     */
+    private $emitter;
+
+    /**
      * @param ContainerRegisterInterface $register
      */
     public function __construct(ContainerRegisterInterface $register)
@@ -26,8 +32,27 @@ class Web
     public function run()
     {
         $response = $this->handle(new Request(ServerRequestFactory::fromGlobals()));
-        $emitter = new SapiEmitter();
-        $emitter->emit($response);
+        $this->getEmitter()->emit($response);
+    }
+
+    /**
+     * @param EmitterInterface $emitter
+     */
+    public function setEmitter(EmitterInterface $emitter)
+    {
+        $this->emitter = $emitter;
+    }
+
+    /**
+     * @return EmitterInterface
+     */
+    public function getEmitter()
+    {
+        if ($this->emitter === null){
+            $this->emitter = new SapiEmitter();
+        }
+
+        return $this->emitter;
     }
 
     /**
