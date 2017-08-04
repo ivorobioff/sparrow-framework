@@ -16,6 +16,11 @@ class Web
     private $containerRegister;
 
     /**
+     * @var ContainerInterface
+     */
+    private $container;
+
+    /**
      * @param ContainerRegisterInterface $register
      */
     public function __construct(ContainerRegisterInterface $register)
@@ -26,8 +31,50 @@ class Web
     public function run()
     {
         $response = $this->handle(new Request(ServerRequestFactory::fromGlobals()));
+
         $emitter = new SapiEmitter();
         $emitter->emit($response);
+
+        if (function_exists('fastcgi_finish_request')){
+            fastcgi_finish_request();
+        }
+
+        $this->terminate();
+    }
+
+    public function terminate()
+    {
+        if (!$this->getContainer()->has(TaskRegisterInterface::class)){
+            return ;
+        }
+
+        /**
+         * @var TaskRegisterInterface $register
+         */
+        $register = $this->getContainer()->get(TaskRegisterInterface::class);
+
+        /**
+         * @var callable[] $tasks
+         */
+        $tasks = new TaskStorage();
+
+        $register->register($tasks);
+
+        foreach ($tasks as $task){
+            $task();
+        }
+    }
+
+    /**
+     * @return ContainerInterface
+     */
+    public function getContainer()
+    {
+        if ($this->container === null){
+            throw new \RuntimeException('The application is unhandled. You have to run the "handle" method.');
+        }
+
+        return $this->container;
     }
 
     /**
@@ -36,35 +83,34 @@ class Web
      */
     public function handle(ServerRequestInterface $request)
     {
-        $container = new Container();
+        $this->container = new Container();
 
         $origins = new Origins();
 
-        $origins->setContainer($container);
         $origins->setRequest($request);
 
-        $container->service(Origins::class, $origins);
-        $container->service(ContainerInterface::class, $container);
-        $container->service(ServerRequestInterface::class, $request);
+        $this->container->service(Origins::class, $origins);
+        $this->container->service(ContainerInterface::class, $this->container);
+        $this->container->service(ServerRequestInterface::class, $request);
 
-        $container->instance(DispatcherInterface::class, Dispatcher::class);
+        $this->container->instance(DispatcherInterface::class, Dispatcher::class);
 
-        $this->containerRegister->register($container);
+        $this->containerRegister->register($this->container);
 
-        $pipeline = new MiddlewarePipeline($container);
+        $pipeline = new MiddlewarePipeline($this->container);
 
-        if ($container->has(MiddlewareRegisterInterface::class)){
+        if ($this->container->has(MiddlewareRegisterInterface::class)){
 
             /**
              * @var MiddlewareRegisterInterface $middlewareRegister
              */
-            $middlewareRegister = $container->get(MiddlewareRegisterInterface::class);
+            $middlewareRegister = $this->container->get(MiddlewareRegisterInterface::class);
 
             $middlewareRegister->register($pipeline);
         }
 
         $pipeline->add(DispatcherMiddleware::class);
 
-        return $pipeline->handle($container->get(ServerRequestInterface::class));
+        return $pipeline->handle($this->container->get(ServerRequestInterface::class));
     }
 }
